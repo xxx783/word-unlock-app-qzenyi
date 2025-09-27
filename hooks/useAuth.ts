@@ -24,9 +24,13 @@ export const useAuth = () => {
       const userData = await AsyncStorage.getItem(STORAGE_KEYS.USER);
       if (userData) {
         const user = JSON.parse(userData);
+        // Check if user is admin based on specific credentials
+        const isAdmin = user.username === '123' && user.email === '18432656624@163.com';
+        const updatedUser = { ...user, isAdmin };
+        
         setAuthState({
           isAuthenticated: true,
-          user,
+          user: updatedUser,
           loading: false,
         });
       } else {
@@ -58,12 +62,15 @@ export const useAuth = () => {
         return false;
       }
 
+      // Check if user is admin based on specific credentials
+      const isAdmin = username === '123' && email === '18432656624@163.com';
+
       // Create new user
       const newUser: User = {
         id: Date.now().toString(),
         username,
         email,
-        isAdmin: existingUsers.length === 0, // First user is admin
+        isAdmin,
         progress: {
           unlockedCategories: ['basic-animals'],
           completedCategories: [],
@@ -101,10 +108,14 @@ export const useAuth = () => {
 
       const user = existingUsers.find(u => u.email === email);
       if (user) {
-        await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+        // Check if user is admin based on specific credentials
+        const isAdmin = user.username === '123' && user.email === '18432656624@163.com';
+        const updatedUser = { ...user, isAdmin };
+        
+        await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
         setAuthState({
           isAuthenticated: true,
-          user,
+          user: updatedUser,
           loading: false,
         });
         return true;

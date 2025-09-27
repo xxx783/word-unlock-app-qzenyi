@@ -14,11 +14,14 @@ export default function ProfileScreen() {
   const { user, logout, getAllUsers } = useAuth();
   const [allUsers, setAllUsers] = useState<User[]>([]);
 
+  // Check if current user is admin (only username "123" and email "18432656624@163.com")
+  const isAdmin = user?.username === '123' && user?.email === '18432656624@163.com';
+
   useEffect(() => {
-    if (user?.isAdmin) {
+    if (isAdmin) {
       loadAllUsers();
     }
-  }, [user]);
+  }, [isAdmin]);
 
   const loadAllUsers = async () => {
     const users = await getAllUsers();
@@ -84,7 +87,7 @@ export default function ProfileScreen() {
             <View style={styles.userInfo}>
               <Text style={styles.username}>{user.username}</Text>
               <Text style={styles.email}>{user.email}</Text>
-              {user.isAdmin && (
+              {isAdmin && (
                 <View style={styles.adminBadge}>
                   <Text style={styles.adminText}>管理员</Text>
                 </View>
@@ -119,25 +122,32 @@ export default function ProfileScreen() {
         <View style={styles.progressCard}>
           <Text style={styles.sectionTitle}>分类进度</Text>
           
-          {Object.entries(user.progress.categoryProgress).map(([categoryId, progress]) => (
-            <View key={categoryId} style={styles.categoryProgress}>
-              <View style={styles.categoryInfo}>
-                <Text style={styles.categoryName}>{categoryId}</Text>
-                <Text style={styles.categoryStats}>
-                  {progress.wordsLearned.length} 单词 • 最高分: {progress.bestScore}%
-                </Text>
+          {Object.entries(user.progress.categoryProgress).length > 0 ? (
+            Object.entries(user.progress.categoryProgress).map(([categoryId, progress]) => (
+              <View key={categoryId} style={styles.categoryProgress}>
+                <View style={styles.categoryInfo}>
+                  <Text style={styles.categoryName}>{categoryId}</Text>
+                  <Text style={styles.categoryStats}>
+                    {progress.wordsLearned.length} 单词 • 最高分: {progress.bestScore}%
+                  </Text>
+                </View>
+                {progress.isCompleted && (
+                  <Icon name="checkmark-circle" size={20} color={colors.success} />
+                )}
               </View>
-              {progress.isCompleted && (
-                <Icon name="checkmark-circle" size={20} color={colors.success} />
-              )}
-            </View>
-          ))}
+            ))
+          ) : (
+            <Text style={styles.noProgressText}>还没有学习进度，开始学习吧！</Text>
+          )}
         </View>
 
-        {/* Admin Panel */}
-        {user.isAdmin && (
+        {/* Admin Panel - Only for specific user */}
+        {isAdmin && (
           <View style={styles.adminCard}>
             <Text style={styles.sectionTitle}>管理员面板</Text>
+            <Text style={styles.adminNote}>
+              只有用户名为 "123" 且邮箱为 "18432656624@163.com" 的用户才能看到此面板
+            </Text>
             
             <Text style={styles.adminSubtitle}>用户数据 ({allUsers.length} 用户)</Text>
             
@@ -146,6 +156,11 @@ export default function ProfileScreen() {
                 <View style={styles.userDataHeader}>
                   <Text style={styles.userDataName}>{userData.username}</Text>
                   <Text style={styles.userDataEmail}>{userData.email}</Text>
+                  {userData.username === '123' && userData.email === '18432656624@163.com' && (
+                    <View style={styles.adminIndicator}>
+                      <Text style={styles.adminIndicatorText}>管理员</Text>
+                    </View>
+                  )}
                 </View>
                 
                 <View style={styles.userDataStats}>
@@ -284,9 +299,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
   },
+  noProgressText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
   adminCard: {
     ...commonStyles.card,
     marginBottom: 16,
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  adminNote: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+    marginBottom: 16,
+    padding: 8,
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 6,
   },
   adminSubtitle: {
     fontSize: 14,
@@ -302,6 +334,9 @@ const styles = StyleSheet.create({
   },
   userDataHeader: {
     marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   userDataName: {
     fontSize: 14,
@@ -311,6 +346,17 @@ const styles = StyleSheet.create({
   userDataEmail: {
     fontSize: 12,
     color: colors.textSecondary,
+  },
+  adminIndicator: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  adminIndicatorText: {
+    color: colors.background,
+    fontSize: 8,
+    fontWeight: '600',
   },
   userDataStats: {
     flexDirection: 'row',

@@ -42,6 +42,8 @@ export interface Word {
   example: string;
   pronunciation?: string;
   difficulty: 'easy' | 'medium' | 'hard';
+  image?: string;
+  audioUrl?: string;
 }
 
 export interface TestQuestion {
